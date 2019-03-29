@@ -1,0 +1,105 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <form class="form-inline">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" value="{{ search_keywords }}" name="search_keywords" placeholder="查找工单">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">提交</button>
+            </form>
+        </caption>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>工单标题</th>
+                <th>工单类型</th>
+                <th>申请人</th>
+                <th>指派给</th>
+                <th>工单状态</th>
+                <th>申请时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for work_order_obj in page_obj %}
+                <tr>
+                    <td>{{ work_order_obj.id }}</td>
+                    <td>{{ work_order_obj.title }}</td>
+                    <td>{{ work_order_obj.get_order_type_display }}</td>
+                    <td>{{ work_order_obj.order_applicant }}</td>
+                    <td>{{ work_order_obj.order_assign_to }}</td>
+                    <td>{{ work_order_obj.get_order_status_display }}</td>
+                    <td>{{ work_order_obj.apply_time }}</td>
+                    <td>
+
+                        <form>
+                            {% if request.user == work_order_obj.order_assign_to or request.user.is_superuser %}
+                            <a href="{% url "work_order_detail" %}?id={{ work_order_obj.id }}&next={{ request.get_full_path|urlencode }}" class="btn btn-info btn-xs">查看并处理</a>
+                            <button type="button" value="{{ work_order_obj.id }}" id="cancel" class="btn btn-danger btn-xs">取消</button>
+                            {% endif %}
+                        </form>
+
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center">
+        <ul class="pagination">
+            {% if page_obj.number == 1 %}
+            <li class="disabled"><a>首页</a></li>
+            {% else %}
+            <li><a href="{% url "work_order_list" %}?page=1{{ search_name }}">首页</a></li>
+            {% endif %}
+            {% if page_obj.has_previous %}
+            <li><a href="{% url "work_order_list" %}?page={{ page_obj.previous_page_number }}{{ search_name }}">上一页</a></li>
+            {% else %}
+            <li class="disabled"><a>上一页</a></li>
+            {% endif %}
+            {% for p in page_range %}
+                {% if p == page_obj.number %}
+                <li class="active"><a>{{ p }}</a></li>
+                {% else %}
+                <li><a href="{% url "work_order_list" %}?page={{ p }}{{ search_name }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li><a href="{% url "work_order_list" %}?page={{ page_obj.next_page_number }}{{ search_name }}">下一页</a></li>
+            {% else %}
+            <li class="disabled"><a>下一页</a></li>
+            {% endif %}
+            {% if page_obj.number == page_obj.paginator.num_pages %}
+            <li class="disabled"><a>尾页</a></li>
+            {% else %}
+            <li><a href="{% url "work_order_list" %}?page={{ page_obj.paginator.num_pages}}{{ search_name }}">尾页</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        $(function () {
+            $("#cancel").click(function () {
+                var oid = $(this).val();
+               $.ajax({
+                    url: "{% url "work_order_list" %}",
+                    type: "post",
+                    data: {"id": oid, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    success: function (res) {
+                        if(res.status){
+                            alert("取消工单成功");
+                            window.location.reload();
+                        }else{
+                            alert("取消工单失败, 原因: " + res.msgs);
+                        }
+                    }
+                });
+            });
+        })
+    </script>
+{% endblock %}

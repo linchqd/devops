@@ -1,0 +1,15 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <h2 class="text-center text-success">操作成功</h2>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(function () {
+            setTimeout(function () {
+                window.location="{{ next_url }}";
+            }, 1000)
+        })
+    </script>
+{% endblock %}

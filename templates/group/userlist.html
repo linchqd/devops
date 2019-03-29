@@ -1,0 +1,63 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <h4 class="text-success">当前用户组: {{ group_obj.name }}</h4>
+        </caption>
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>用户名</th>
+                <th>状态</th>
+                <th>邮箱</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u_obj in object_list %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ u_obj.username }}</td>
+                    <td>
+                        {% if u_obj.is_active %}
+                        {{ u_obj.is_active }}<span class="glyphicon glyphicon-ok text-info"></span>
+                        {% else %}
+                        {{ u_obj.is_active }}<span class="glyphicon glyphicon-remove text-warning"></span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u_obj.email }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-danger btn-xs group_delete_user" data-uid="{{ u_obj.id }}">从组中删除</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block js %}
+    <script>
+    $(function() {
+        $(".group_delete_user").click(function () {
+            var uid = $(this).attr("data-uid");
+            $.ajax({
+                url: "{% url "group_userlist" %}",
+                data: {"uid": uid, "gid": {{ group_obj.id }}, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                type: "post",
+                success: function (res) {
+                    if(res.status == 0){
+                        window.location.reload()
+                    }else{
+                        alert(res.msgs)
+                    }
+                }
+            })
+        });
+    });
+    </script>
+{% endblock %}

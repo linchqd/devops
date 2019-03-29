@@ -1,0 +1,86 @@
+{% extends "public/index.html" %}
+{% load filters %}
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <form class="form-inline">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" value="{{ hostname }}" name="hostname" placeholder="通过主机名查找">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">提交</button>
+            </form>
+        </caption>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>主机名</th>
+                <th>ip地址</th>
+                <th>OS</th>
+                <th>所属业务线</th>
+                <th>所属产品线</th>
+                <th>cpu</th>
+                <th>men</th>
+                <th>last check</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server_obj in object_list %}
+                <tr>
+                    <td>{{ server_obj.id }}</td>
+                    <td>{{ server_obj.hostname }}</td>
+                    <td>{{ server_obj.inner_ip }}</td>
+                    <td>{{ server_obj.os }}</td>
+                    <td>{{ server_obj.server_id|get_product }}</td>
+                    <td>{{ server_obj.server_purpose|get_product }}</td>
+                    <td>{{ server_obj.server_cpu }}</td>
+                    <td>{{ server_obj.server_mem }}</td>
+                    <td>{{ server_obj.check_update_time }}</td>
+                    <td>
+                        <form method="post">
+                            {% csrf_token %}
+                           <a href="{% url "modify_server_purpose" %}?id={{ server_obj.id }}&next={{ request.get_full_path|urlencode }}" class="btn btn-warning btn-xs">修改</a>
+                            <input type="hidden" name="server_id" value="{{ server_obj.id }}">
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="btn btn-danger btn-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center">
+        <ul class="pagination">
+            {% if page_obj.number == 1 %}
+            <li class="disabled"><a>首页</a></li>
+            {% else %}
+            <li><a href="{% url "server_list" %}?page=1{{ search_name }}">首页</a></li>
+            {% endif %}
+            {% if page_obj.has_previous %}
+            <li><a href="{% url "server_list" %}?page={{ page_obj.previous_page_number }}{{ search_name }}">上一页</a></li>
+            {% else %}
+            <li class="disabled"><a>上一页</a></li>
+            {% endif %}
+            {% for p in page_range %}
+                {% if p == page_obj.number %}
+                <li class="active"><a>{{ p }}</a></li>
+                {% else %}
+                <li><a href="{% url "server_list" %}?page={{ p }}{{ search_name }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li><a href="{% url "server_list" %}?page={{ page_obj.next_page_number }}{{ search_name }}">下一页</a></li>
+            {% else %}
+            <li class="disabled"><a>下一页</a></li>
+            {% endif %}
+            {% if page_obj.number == page_obj.paginator.num_pages %}
+            <li class="disabled"><a>尾页</a></li>
+            {% else %}
+            <li><a href="{% url "server_list" %}?page={{ page_obj.paginator.num_pages}}{{ search_name }}">尾页</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends "public/index.html" %}
+{% block css %}
+    <style type="text/css">
+        div.row {
+            margin-bottom:15px;
+            margin-left: 0;
+            margin-right: 0;
+        }
+        .form-horizontal .form-group, div.form-group {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        label.control-label {
+            padding-top: 7px;
+            margin-bottom: 0;
+            text-align: right;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="row">
+        <div class="col-sm-5">
+            <div class="row">
+                <div class="form-group">
+                    <label for="server_id" class="col-sm-3 control-label">业务线：*</label>
+                    <div class="col-sm-8">
+                        <select class="form-control" name="server_id" id="server_id" >
+                            <option value="">请选择</option>
+                            {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.service_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <div class="row">
+                <div class="form-group">
+                    <label for="server_purpose" class="col-sm-3 control-label">产品线：*</label>
+                    <div class="col-sm-8">
+                        <select class="form-control" name="server_purpose" id="server_purpose" >
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <form class="form-horizontal" role="form">
+            <div class="col-sm-5" style="padding-left: 70px;padding-right: 70px;">
+                    <table class="table-striped table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checked_all"> 主机名</th>
+                                <th>模板</th>
+                            </tr>
+                        </thead>
+                        <tbody class="server_list">
+
+                        </tbody>
+                    </table>
+            </div>
+            <div class="col-sm-5">
+                <div class="row">
+                    <div class="form-group">
+                        <label for="template_ids" class="col-sm-3 control-label">选择模板：*</label>
+                        <div class="col-sm-8">
+                            <select class="form-control chosen-select" data-placeholder="选择模板" multiple="multiple" name="template_ids" id="template_ids">
+                                {% for template in templates %}
+                                    <option value="{{ template.templateid }}">{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="text-right col-sm-11" style="padding-top: 10px;">
+                            <button type="button" id="submit" class="btn btn-sm btn-primary">提交</button>
+                            <button type="button" id="sync_zabbix_table" class="btn btn-sm btn-primary">同步zabbix缓存表</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-sm-9" style="margin-left: 56px;">
+            <form role="form">
+              <div class="form-group">
+                <label for="sync_result">同步结果</label>
+                <textarea id="sync_result" class="form-control" rows="20"></textarea>
+              </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        $(function(){
+            // 当选择业务线后
+            $("#server_id").change(function(){
+                var server_id = $(this).val();
+                if(server_id == ""){
+                    return false;
+                }
+                var server_purpose = $("#server_purpose");
+                server_purpose.empty().append('<option value="">请选择</option>');
+                $.get("{% url 'product_get' %}", {pid:server_id}, function(res){
+                    if (res.status != 0 ){
+                        alert("错误");
+                        return false
+                    }
+                    $.each(res.data, function(i, obj){
+                        server_purpose.append('<option value="'+ obj.id +'">'+ obj.service_name +'</option>');
+                    });
+                    server_purpose.trigger("chosen:updated");
+                });
+            });
+
+            $("#server_purpose").change(function () {
+                var server_purpose = $(this).val();
+                if(server_purpose == ""){
+                    return false;
+                }
+                $.get("{% url 'get_server_monitor_status' %}", {id:server_purpose}, function(res){
+                    //[{"hostname": "qr-fang-lnmp-01.cqt.com", "id": 1, "monitor": true, "template_tag": true, "templates": [{"name": "Template OS Linux", "templateid": "10001"}]}]
+                    var tbody = $(".server_list");
+                    var html = "";
+                    $.each(res, function(i, obj){
+                        html += "<tr>";
+                        html += '<td style="width: 200px;"><lable><input type="checkbox" class="checked_per_pro" name="hostid" value=' + obj.id + '>' + obj.hostname + '</lable></td>';
+                        if(obj.monitor){
+                            if(obj.template_tag){
+                                html += '<td>';
+                                $.each(obj.templates, function (i, tp) {
+                                    html += '<div>' + tp.name + '<button class="close" type="button" style="float: none;line-height: 8px;padding-left:2px;"><span data="{\'hostid\':' + obj.id + ',\'templateid\':' + tp.templateid + '}">×</span></button></div>';
+                                });
+                                html += '</td>'
+                            }else{
+                                html += '<td>该主机没有模板</td>'
+                            }
+                        }else{
+                            html += '<td>该主机没有被监控</td>';
+                        }
+                        html += "</tr>";
+                    });
+                    tbody.append(html);
+                });
+            });
+        });
+    </script>
+    <script>
+            $("#checked_all").click(function() {
+                if($("#checked_all").is(":checked")) {
+                    $(".checked_per_pro").attr("checked","checked");
+                }else{
+                    $(".checked_per_pro").removeAttr("checked");
+                }
+            });
+    </script>
+    <script>
+        $(function(){
+
+            $(".chosen-select").chosen({
+
+                no_results_text: "没有找到结果！",//搜索无结果时显示的提示
+
+                search_contains:true,   //关键字模糊搜索，设置为false，则只从开头开始匹配
+
+                allow_single_deselect:true, //是否允许取消选择
+
+                max_selected_options:6  //当select为多选时，最多选择个数
+            });
+        });
+    </script>
+    <script>
+        $("#submit").click(function () {
+            var template_ids = $("#template_ids").val();
+            var server_ids = new Array();
+            $("input[type='checkbox']:checked").each(function(){
+                if($(this).val() != "on"){
+                    server_ids.push($(this).val());
+                }
+            });
+            $.ajax({
+                url: "{% url "link_templates" %}",
+                type: "post",
+                data: {"template_ids": template_ids, "server_ids": server_ids, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function (res) {
+                    if(res.status == 0){
+                        var html = '';
+                        $.each(res.data, function (i, item) {
+                            if (item.status == 0){
+                                html += item.hostname + ":" + "绑定成功\n";
+                            }else{
+                                html += item.hostname + ":" + "绑定失败,错误消息:" + item.msgs + "\n";
+                            }
+                        });
+                        $("#sync_result").empty().html(html);
+                    }else{
+                        $("#sync_result").empty().html("绑定失败,错误消息" + res.msgs);
+                    }
+                }
+            })
+        });
+    </script>
+    <script>
+        $("#sync_zabbix_table").click(function () {
+            $.get("{% url "cache_host" %}", function(res){
+                if(res.status == 0){
+                    $("#sync_result").empty().html("同步zabbix缓存表成功")
+                }
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            $(".server_list").on('click', 'span', function () {
+                var data = $(this).attr("data");
+                var deldom = $(this).parent().parent();
+                $.ajax({
+                    url: "{% url "unlink_template" %}",
+                    data: {"data": data, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    type: "post",
+                    success: function (res) {
+                        if(res.status){
+                            deldom.remove();
+                            $("#sync_result").empty().html("unlink模版成功");
+                        }else{
+                            $("#sync_result").empty().html("unlink模版失败:" + res.msgs);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

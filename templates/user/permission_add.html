@@ -1,0 +1,43 @@
+{% extends "public/index.html" %}
+
+{% block css %}
+    <style type="text/css">
+        .form-horizontal .form-group {
+            margin-left: 0px;
+            margin-right: 0px;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <form class="form-horizontal" method="post" action="">
+        {% csrf_token %}
+      <div class="form-group">
+          <label class="col-sm-2 control-label">模型</label>
+          <div class="col-sm-6">
+              <select name="content_type_id" class="form-control">
+                <option value=0>请选择模型</option>
+                {% for content_type in contenttype %}
+                    <option value="{{ content_type.id }}">{{ content_type.app_label }}-->{{ content_type.model }}</option>
+                {% endfor %}
+              </select>
+          </div>
+      </div>
+      <div class="form-group">
+        <label for="codename" class="col-sm-2 control-label">权限</label>
+        <div class="col-sm-6">
+          <input type="text" name="codename" class="form-control" id="codename" placeholder="权限">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="name" class="col-sm-2 control-label">显示名</label>
+        <div class="col-sm-6">
+          <input type="text" name= "name" class="form-control" id="name" placeholder="显示名">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-6">
+          <input type="submit" class="btn btn-default" value="提交">
+        </div>
+      </div>
+    </form>
+{% endblock %}

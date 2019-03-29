@@ -1,0 +1,48 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            {% if perms.resources.add_idc_list %}
+            <a href="{% url "idc_add" %}" class="btn btn-warning text-warning">创建IDC机房</a>
+            {% endif %}
+        </caption>
+        <thead>
+            <tr>
+                <th>机房id</th>
+                <th>机房名称</th>
+                <th>机房名称简称</th>
+                <th>机房地址</th>
+                <th>机房负责人</th>
+                <th>机房负责人电话</th>
+                <th>机房负责人邮箱</th>
+                <th>备注</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idc_obj in object_list %}
+            <tr>
+                <td>{{ idc_obj.id }}</td>
+                <td>{{ idc_obj.name }}</td>
+                <td>{{ idc_obj.module_letter }}</td>
+                <td>{{ idc_obj.addr }}</td>
+                <td>{{ idc_obj.user_name }}</td>
+                <td>{{ idc_obj.user_phone }}</td>
+                <td>{{ idc_obj.user_email }}</td>
+                <td>{{ idc_obj.remarks }}</td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
+                        <a type="button" class="btn btn-success btn-xs" href="">查看机房所有服务器</a>
+                        {% if perms.resources.delete_idc_list%}
+                        <input type="hidden" name="id" value="{{ idc_obj.id }}">
+                        <button type="submit" class="btn btn-danger btn-xs">删除</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "public/index.html" %}
+{% block css %}
+    <style type="text/css">
+        .form-horizontal {
+            width: 800px;
+        }
+        .form-horizontal .form-group {
+            margin-left: 0px;
+            margin-right: 0px;
+        }
+        div.row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="row">
+      <form class="form-horizontal" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <div class="col-sm-3 text-right">
+                <label class="control-label" for="order_title">工单标题 *</label>
+            </div>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="order_title" name="title">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-3 text-right">
+                <label class="control-label" for="order_type">工单类型 *</label>
+            </div>
+            <div class="col-sm-9">
+                <select class="form-control" id="order_type" name="order_type">
+                    {% for ot in order_type %}
+                        <option value="{{ ot.0 }}">{{ ot.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-3 text-right">
+                <label class="control-label" for="order_contents">工单内容 *</label>
+            </div>
+            <div class="col-sm-9">
+                <textarea id="order_contents" name="order_contents" class="form-control" rows="10"></textarea>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-3 text-right">
+                <label class="control-label" for="order_assign_to">指派给 *</label>
+            </div>
+            <div class="col-sm-9">
+                <select class="form-control" id="order_assign_to" name="order_assign_to">
+                    {% for user_obj in order_assign_to %}
+                        <option value="{{ user_obj.id }}">{{ user_obj.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-left:135px;">
+            <input type="hidden" name="order_applicant" value="{{ request.user.id }}">
+            <button type="submit" class="btn btn-sm btn-primary">提交</button>
+            <button type="reset" class="btn btn-sm btn-default">重置</button>
+        </div>
+      </form>
+    </div>
+{% endblock %}

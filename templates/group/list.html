@@ -1,0 +1,163 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <!-- 按钮触发模态框 -->
+            {% if perms.accounts.add_group %}
+            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#myModal">创建用户组</button>
+            {% endif %}
+            <!-- 模态框（Modal） -->
+        </caption>
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>id</th>
+                <th>组名称</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ g_obj.id }}</td>
+                <td>{{ g_obj.name }}</td>
+                <td>
+                    <a type="button" class="btn btn-success btn-xs" href="{% url "group_userlist" %}?gid={{ g_obj.id }}">成员列表</a>
+                    <button class="btn btn-info btn-xs query_permission" data="{{ g_obj.id }}" data-toggle="modal" data-target="#get_permission">查看权限</button>
+                    <a type="button" class="btn btn-warning btn-xs" href="{% url "modify_group_permission" %}?gid={{ g_obj.id }}">修改权限</a>
+                    <button class="btn btn-danger btn-xs delete_group" data="{{ g_obj.id}}">删除该组</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <center>
+    <div>
+        <ul class="pagination">
+            {% if page_obj.number == 1 %}
+            <li class="disabled"><a>首页</a></li>
+            {% else %}
+            <li><a href="{% url "group_list" %}?page=1">首页</a></li>
+            {% endif %}
+            {% if page_obj.has_previous %}
+            <li><a href="{% url "group_list" %}?page={{ page_obj.previous_page_number }}">上一页</a></li>
+            {% else %}
+            <li class="disabled"><a>上一页</a></li>
+            {% endif %}
+            {% for p in page_range %}
+                {% if p == page_obj.number %}
+                <li class="active"><a>{{ p }}</a></li>
+                {% else %}
+                <li><a href="{% url "group_list" %}?page={{ p }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li><a href="{% url "group_list" %}?page={{ page_obj.next_page_number }}">下一页</a></li>
+            {% else %}
+            <li class="disabled"><a>下一页</a></li>
+            {% endif %}
+            {% if page_obj.number == page_obj.paginator.num_pages %}
+            <li class="disabled"><a>尾页</a></li>
+            {% else %}
+            <li><a href="{% url "group_list" %}?page={{ page_obj.paginator.num_pages}}">尾页</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    </center>
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">添加用户组</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="groupname" placeholder="组名称" required autofocus />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary add_group">提交</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="get_permission" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title current_group_name" id="myModalLabel"></h4>
+                </div>
+                <div class="modal-body group_permission_list">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        $(".add_group").click(function(){
+            var groupname_obj = $("#groupname");
+            var group_name = groupname_obj.val();
+            groupname_obj.val("");
+            if (group_name == ""){
+                alert("组名不能为空!");
+                return false;
+            }
+            $.ajax({
+                url: "{% url "create_group" %}",
+                data: {"group_name": group_name, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                type: "post",
+                success: function (res) {
+                    if(res.status == 0){
+                        window.location.reload()
+                    }else{
+                        alert(res.msgs)
+                    }
+                }
+            });
+            console.log(group_name);
+        });
+        $(".query_permission").click(function () {
+            var gid = $(this).attr("data");
+            $.ajax({
+                url: "{% url "group_permission_list" %}",
+                type: "get",
+                data: {"gid": gid},
+                success: function (res) {
+                    if (res.status == 0){
+                        $(".current_group_name").html("组" + res.group_name + "当前拥有的权限");
+                        var p;
+                        var html = "";
+                        if ((res.data).length > 0) {
+                            for (p in res.data) {
+                                html += "<p>" + res.data[p].app_label + "-> " + res.data[p].model + " : " + res.data[p].codename + "(" + res.data[p].name + ")" + "</p>"
+                            }
+                            $(".group_permission_list").html(html)
+                        }else{
+                            $(".group_permission_list").html("没有权限")
+                        }
+                    }
+                }
+            })
+        });
+        $(".delete_group").click(function () {
+            var gid = $(this).attr("data");
+            $.ajax({
+                url: "{% url "delete_group" %}",
+                type: "post",
+                data: {"gid": gid, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function (res) {
+                        window.location = res.next_url
+                }
+            })
+        })
+    </script>
+{% endblock %}

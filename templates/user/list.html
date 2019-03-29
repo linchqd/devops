@@ -1,0 +1,170 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <form class="form-inline">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" value="{{ username }}" name="username" placeholder="查找">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">提交</button>
+            </form>
+        </caption>
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>用户名</th>
+                <th>状态</th>
+                <th>邮箱</th>
+                <th>微信号</th>
+                <th>手机号码</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u_obj in object_list %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ u_obj.username }}</td>
+                    <td>
+                        {% if u_obj.is_active %}
+                        {{ u_obj.is_active }}<span class="glyphicon glyphicon-ok text-info"></span>
+                        {% else %}
+                        {{ u_obj.is_active }}<span class="glyphicon glyphicon-remove text-warning"></span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u_obj.email }}</td>
+                    <td>{{ u_obj.profile.weixin }}</td>
+                    <td>{{ u_obj.profile.phone }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">修改
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#useraddgroup" class="user_add_group" data-toggle="modal" data-uname="{{ u_obj.username }}" data-uid="{{ u_obj.id }}" data-target="#useraddgroup">添加用户组</a></li>
+                                </ul>
+                            </div>
+                            {% if u_obj.is_active %}
+                            <button type="button" class="btn btn-warning btn-xs user_modify_status" data="{{ u_obj.id }}">禁用</button>
+                            {% else %}
+                            <button type="button" class="btn btn-success btn-xs user_modify_status" data="{{ u_obj.id }}">开启</button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="modal fade" id="useraddgroup" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="user_to_group_title"></h4>
+                </div>
+                <div class="modal-body">
+                    <select class="form-control" id="user_all_groups">
+
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary useraddgroup">提交</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="text-center">
+        <ul class="pagination">
+            {% if page_obj.number == 1 %}
+            <li class="disabled"><a>首页</a></li>
+            {% else %}
+            <li><a href="{% url "user_list" %}?page=1{{ search_name }}">首页</a></li>
+            {% endif %}
+            {% if page_obj.has_previous %}
+            <li><a href="{% url "user_list" %}?page={{ page_obj.previous_page_number }}{{ search_name }}">上一页</a></li>
+            {% else %}
+            <li class="disabled"><a>上一页</a></li>
+            {% endif %}
+            {% for p in page_range %}
+                {% if p == page_obj.number %}
+                <li class="active"><a>{{ p }}</a></li>
+                {% else %}
+                <li><a href="{% url "user_list" %}?page={{ p }}{{ search_name }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li><a href="{% url "user_list" %}?page={{ page_obj.next_page_number }}{{ search_name }}">下一页</a></li>
+            {% else %}
+            <li class="disabled"><a>下一页</a></li>
+            {% endif %}
+            {% if page_obj.number == page_obj.paginator.num_pages %}
+            <li class="disabled"><a>尾页</a></li>
+            {% else %}
+            <li><a href="{% url "user_list" %}?page={{ page_obj.paginator.num_pages}}{{ search_name }}">尾页</a></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+    $(function(){
+        $(".user_modify_status").click(function(){
+            var uid = $(this).attr("data");
+            $.ajax({
+                url: "{% url "user_modify_status" %}",
+                data: {"uid": uid, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                type: "post",
+                success: function (res) {
+                    if(res.status == 0){
+                        window.location.reload()
+                    }else{
+                        alert(res.msgs)
+                    }
+                }
+            })
+        })
+
+        $(".user_add_group").click(function () {
+            var userid = $(this).attr("data-uid");
+            var username = $(this).attr("data-uname");
+            $("#user_to_group_title").html("将用户<b>" + username + "</b>添加到组");
+            $.ajax({
+                url: '{% url "join_group" %}',
+                type: "get",
+                data: {"uid": userid},
+                success: function (res) {
+                    var user_all_groups_html = '<option value="0">请选择用户组</option>';
+                    $.each(res,function (index, item) {
+                        user_all_groups_html+='<option value="' + item.id + '">' + item.name + '</option>';
+                    });
+                    $("#user_all_groups").html(user_all_groups_html)
+                }
+            });
+            $(".useraddgroup").click(function () {
+                var select_group = $("#user_all_groups").val();
+                $.ajax({
+                    url: '{% url "join_group" %}',
+                    type: "post",
+                    data: {"uid": userid, "gid": select_group, "option": "join", csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    success: function (res) {
+                        if (res.status == 0){
+                            alert("success")
+                            window.location.reload();
+                        }else{
+                            alert(res.msgs);
+                        }
+                    }
+                })
+            })
+        })
+    })
+    </script>
+{% endblock %}

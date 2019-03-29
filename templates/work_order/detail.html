@@ -1,0 +1,98 @@
+{% extends "public/index.html" %}
+{% block css %}
+    <style type="text/css">
+        .form-horizontal {
+            width: 800px;
+        }
+        .form-horizontal .form-group {
+            margin-left: 0px;
+            margin-right: 0px;
+        }
+        div.row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <div class="row">
+        <form class="form-horizontal" method="post">
+            {% csrf_token %}
+            <div class="form-horizontal">
+                {% if msg == "1" %}
+                    <div class="form-group">
+                        <div class="col-sm-9 col-sm-offset-3 text-center">
+                            <p class="text-success" style="width: 100%;background: #dff0d8">工单接受成功</p>
+                        </div>
+                    </div>
+                {% elif msg == "2" %}
+                    <div class="form-group">
+                        <div class="col-sm-9 col-sm-offset-3 text-center">
+                            <p class="text-success" style="width: 100%;background: #dff0d8">工单处理完成</p>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="form-group">
+                    <div class="col-sm-3 text-right">
+                        <label class="control-label" for="id">工单id</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" disabled id="id" value="{{ id }}" name="id">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-3 text-right">
+                        <label class="control-label" for="order_title">工单标题 *</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" disabled value="{{ title }}" id="order_title" name="title">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-3 text-right">
+                        <label class="control-label" for="order_type">工单类型</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" disabled value="{{ order_type }}" id="order_type" name="order_type">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-3 text-right">
+                        <label class="control-label" for="order_contents">工单内容 *</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <textarea id="order_contents" name="order_contents" disabled class="form-control" rows="10">{{ order_contents }}</textarea>
+                    </div>
+                </div>
+
+                {% if order_status > 0 %}
+                    <div class="form-group">
+                        <div class="col-sm-3 text-right">
+                            <label class="control-label" for="order_result">处理结果 *</label>
+                        </div>
+                        <div class="col-sm-9">
+                            {% if order_status == 1 %}
+                            <textarea id="order_result" name="order_result" class="form-control" rows="10"></textarea>
+                            {% elif order_status == 2 %}
+                            <textarea id="order_result" disabled name="order_result" class="form-control" rows="10">{{ order_result }}</textarea>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div style="margin-left:135px;">
+                <input type="hidden" name="order_id" value="{{ id }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% if order_status == 0 %}
+                <button type="submit" class="btn btn-sm btn-primary">接受工单</button>
+                {% elif order_status == 1 %}
+                <button type="submit" class="btn btn-sm btn-primary">处理完成</button>
+                {% endif %}
+                <a class="btn btn-sm btn-primary" href="{{ next_url }}">返回工单列表</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "public/index.html" %}
+{% block css %}
+    <style type="text/css">
+        .dl-horizontal dt {
+            width: 230px;
+        }
+        .dl-horizontal dd {
+            margin-left: 260px;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <form method="post" class="form-horizontal">
+        {% csrf_token %}
+        <dl class="dl-horizontal">
+            {% for contenttype_obj in contenttype %}
+            <dt>{{ contenttype_obj.app_label }} -> {{ contenttype_obj.model }}</dt>
+            <dd>
+                <ul class="list-unstyled">
+                    {% for permission_obj in contenttype_obj.permission_set.all %}
+                    <li>
+                        <input type="checkbox" value="{{ permission_obj.id }}" name="permission" id="{{ permission_obj.codename }}_{{ forloop.counter }}" {% if permission_obj.id in permissions %}checked {% endif %}>
+                        <label for="{{ permission_obj.codename }}_{{ forloop.counter }}">{{ permission_obj.codename }}</label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </dd>
+            {% endfor %}
+        </dl>
+        <div class="col-md-offset-2">
+            <input type="hidden" name="group_id" value="{{ group_id }}">
+            <button type="submit" class="btn btn-success">提交</button>
+            <button type="reset" class="btn">重置</button>
+        </div>
+    </form>
+{% endblock %}

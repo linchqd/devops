@@ -1,0 +1,49 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+  <table class="table table-striped">
+        <caption>
+            <a href="{% url "product_add" %}?next={{ request.get_full_path|urlencode }}" class="btn btn-warning pull-left">添加业务线</a>
+        </caption>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>业务线名称</th>
+                <th>简称</th>
+                <th>所属级别</th>
+                {% if parent %}<th>上级业务线</th>{% endif %}
+                <th>运维对接人</th>
+                <th>业务对接人</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product_obj in products %}
+                <tr>
+                    <td>{{ product_obj.id }}</td>
+                    <td>{{ product_obj.service_name }}</td>
+                    <td>{{ product_obj.module_letter }}</td>
+                    <td>{% if product_obj.pid == 0 %}顶级{% else %}二级{% endif %}</td>
+                    {% if parent %}<td>{{ parent }}</td>{% endif %}
+                    <td>{{ product_obj.op_interface }}</td>
+                    <td>{{ product_obj.dev_interface }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <form method="post">
+                                {% csrf_token %}
+                                {% if product_obj.pid == 0 %}
+                                <a class="btn btn-primary btn-xs" href="{% url "product_manage" %}?pid={{ product_obj.id }}">查看下属业务线</a>
+                                {% else %}
+                                <a class="btn btn-primary btn-xs" href="{% url "server_list" %}?id={{ product_obj.id }}">查看服务器列表</a>
+                                {% endif %}
+                                <input type="hidden" name="product_id" value="{{ product_obj.id }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-warning btn-xs">删除业务线</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

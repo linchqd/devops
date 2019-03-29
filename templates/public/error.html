@@ -1,0 +1,16 @@
+{% extends "public/index.html" %}
+
+{% block body %}
+    <h2 class="text-center text-warning">操作失败</h2>
+    <div class="text-warning text-center">失败原因:{{ msgs }}</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(function () {
+            setTimeout(function () {
+                window.location="{{ next_url }}";
+            }, 3000)
+        })
+    </script>
+{% endblock %}

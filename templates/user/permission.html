@@ -1,0 +1,110 @@
+{% extends "public/index.html" %}
+{% block css %}
+    <style type="text/css">
+        .form-group .form-control {
+            margin-left: 10px;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <a href="{% url "permission_add" %}" class="btn btn-warning pull-left">添加权限</a>
+            <form class="form-inline" method="get">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" value="{{ permission_reg }}" name="permission_reg" placeholder="输入应用名或模型名查找">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">提交</button>
+            </form>
+        </caption>
+        <thead>
+            <tr>
+                <th>权限id</th>
+                <th>模型id</th>
+                <th>应用</th>
+                <th>模型</th>
+                <th>权限名</th>
+                <th>显示名</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for perssion_obj in object_list %}
+                <tr>
+                    <td>{{ perssion_obj.id }}</td>
+                    <td>{{ perssion_obj.content_type.id }}</td>
+                    <td>{{ perssion_obj.content_type.app_label }}</td>
+                    <td>{{ perssion_obj.content_type.model }}</td>
+                    <td>{{ perssion_obj.codename }}</td>
+                    <td>{{ perssion_obj.name }}</td>
+                    <td>
+                        <button type="button" data="{{ perssion_obj.id }}" data-toggle="modal" data-target="#modify_name" class="btn btn-warning btn-xs modify_display_name">修改显示名</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-center">
+        <ul class="pagination">
+            {% if page_obj.number == 1 %}
+            <li class="disabled"><a>首页</a></li>
+            {% else %}
+            <li><a href="{% url "permission_list" %}?page=1{{ search_name }}">首页</a></li>
+            {% endif %}
+            {% if page_obj.has_previous %}
+            <li><a href="{% url "permission_list" %}?page={{ page_obj.previous_page_number }}{{ search_name }}">上一页</a></li>
+            {% else %}
+            <li class="disabled"><a>上一页</a></li>
+            {% endif %}
+            {% for p in paginator.page_range %}
+                {% if p == page_obj.number %}
+                <li class="active"><a>{{ p }}</a></li>
+                {% else %}
+                <li><a href="{% url "permission_list" %}?page={{ p }}{{ search_name }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li><a href="{% url "permission_list" %}?page={{ page_obj.next_page_number }}{{ search_name }}">下一页</a></li>
+            {% else %}
+            <li class="disabled"><a>下一页</a></li>
+            {% endif %}
+            {% if page_obj.number == page_obj.paginator.num_pages %}
+            <li class="disabled"><a>尾页</a></li>
+            {% else %}
+            <li><a href="{% url "permission_list" %}?page={{ page_obj.paginator.num_pages}}{{ search_name }}">尾页</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="modal fade" id="modify_name" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form class="form-horizontal" method="post" action="{% url "modify_display_name" %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="user_to_group_title">修改权限显示名</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input name="name" class="form-control" type="text" placeholder="请输入显示名">
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="permission_id" name="permission_id" value="">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="submit" class="btn btn-primary">提交</button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script>
+        $(".modify_display_name").click(function () {
+            var permission_id = $(this).attr("data")
+            $("#permission_id").attr("value", permission_id)
+        })
+    </script>
+{% endblock %}
