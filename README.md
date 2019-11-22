@@ -13,7 +13,7 @@ https://www.cnblogs.com/zny/p/10072938.html pymysql
     安装webpack : cnpm install webpack -g
     安装vuecli : cnpm install -g @vue/cli
     创建一个项目: vue create vue-project                  https://www.cnblogs.com/liuqiuyue/p/9699796.html
-    安装vue-route : cnpm install vue-router -g
+    安装vue-route : cnpm install vue-router -S
     安装element : npm i element-ui -S
     启动:  cd vue-project  cnpm run serve
 
