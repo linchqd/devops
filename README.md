@@ -15,5 +15,10 @@ https://www.cnblogs.com/zny/p/10072938.html pymysql
     创建一个项目: vue create vue-project                  https://www.cnblogs.com/liuqiuyue/p/9699796.html
     安装vue-route : cnpm install vue-router -S
     安装element : npm i element-ui -S
+    cnpm i  @fortawesome/fontawesome-svg-core -S
+    cnpm i  @fortawesome/vue-fontawesome -S
+    cnpm i  @fortawesome/free-solid-svg-icons -S
+    cnpm i  @fortawesome/free-regular-svg-icons -S
+    npm  i  @fortawesome/free-brands-svg-icons -S
     启动:  cd vue-project  cnpm run serve
 
