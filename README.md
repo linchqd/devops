@@ -29,4 +29,13 @@ https://www.cnblogs.com/zny/p/10072938.html pymysql
         Vue.component('font-awesome-layers-text', FontAwesomeLayersText)
     
     启动:  cd vue-project  cnpm run serve
-
+# python3 venv
+    pip3 install virtualenv
+    mkdir projects
+    cd projects
+    virtualenv --no-site-packages venv
+    source venv/bin/activate
+    pip3 freeze > requirements.txt 
+    pip3 install -r requirements.txt
+    
+     
