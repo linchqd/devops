@@ -38,4 +38,13 @@ https://www.cnblogs.com/zny/p/10072938.html pymysql
     pip3 freeze > requirements.txt 
     pip3 install -r requirements.txt
     
-     
+# github 一个仓库放多个项目
+    1. 创建好仓库 https://github.com/linchqd/DockerUI.git
+    2. git clone 到本地
+    3. git checkout --orphan 分支名称(api)   创建分支api并进入api分支, 然后把里边的内容清空, 创建api分支的内容文件
+    4. 然后git add / git commit /  git branch --set-upstream-to=origin/api api  /  git pull origin/master api  即可
+    5. 拉取分支代码: git clone -b api https://github.com/linchqd/DockerUI.git ~/api  即可将分支api克隆到家目录的api目录下
+    
+    
+
+
