@@ -47,4 +47,5 @@ https://www.cnblogs.com/zny/p/10072938.html pymysql
     
 # https://github.com/CentOS/CentOS-Dockerfiles
 
+# pycharm activecode http://idea.medeming.com/jet/
 
